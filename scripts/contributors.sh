@@ -6,7 +6,7 @@
 #                            | (__| |_| |  _ <| |___
 #                             \___|\___/|_| \_\_____|
 #
-# Copyright (C) 2013-2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+# Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution. The terms
@@ -18,6 +18,8 @@
 #
 # This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
 # KIND, either express or implied.
+#
+# SPDX-License-Identifier: curl
 #
 ###########################################################################
 
@@ -58,17 +60,17 @@ fi
   git log --pretty=full --use-mailmap $start..HEAD
   if [ -d "$CURLWWW" ]
   then
-   git -C ../curl-www log --pretty=full --use-mailmap $start..HEAD
+   git -C "$CURLWWW" log --pretty=full --use-mailmap $start..HEAD
   fi
  ) | \
-egrep -ai '(^Author|^Commit|by):' | \
+grep -Eai '(^Author|^Commit|by):' | \
 cut -d: -f2- | \
 cut '-d(' -f1 | \
 cut '-d<' -f1 | \
 tr , '\012' | \
 sed 's/ at github/ on github/' | \
 sed 's/ and /\n/' | \
-sed -e 's/^ //' -e 's/ $//g' -e 's/@users.noreply.github.com$/ on github/'
+sed -e 's/^ *//' -e 's/ $//g' -e 's/@users.noreply.github.com$/ on github/'
 
 grep -a "^  [^ \(]" RELEASE-NOTES| \
 sed 's/, */\n/g'| \
@@ -76,22 +78,23 @@ sed 's/^ *//'
 
 )| \
 sed -f ./docs/THANKS-filter | \
-grep -a ' ' | \
 sort -fu | \
 awk '{
- num++;
- n = sprintf("%s%s%s,", n, length(n)?" ":"", $0);
- #print n;
- if(length(n) > 77) {
-   printf("  %s\n", p);
-   n=sprintf("%s,", $0);
+ if(length($0)) {
+   num++;
+   n = sprintf("%s%s%s,", n, length(n)?" ":"", $0);
+   #print n;
+   if(length(n) > 77) {
+     printf("  %s\n", p);
+     n=sprintf("%s,", $0);
+   }
+   p=n;
  }
- p=n;
-
 }
 
  END {
-   printf("  %s\n", p);
+   pp=substr(p,1,length(p)-1);
+   printf("  %s\n", pp);
    printf("  (%d contributors)\n", num);
  }
 
